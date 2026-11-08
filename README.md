@@ -1,25 +1,43 @@
 # serverless-gitlab-mcp
 
-Read-only MCP server for GitLab (issues, merge requests, comments, diffs, files, search). It lets Gemini (and other MCP clients) read GitLab without OAuth. Deploy it as a Cloudflare Worker, or self-host it with Node/Docker.
+Read-only MCP server for GitLab (issues, merge requests, comments, diffs, files, search). It lets Gemini web app (and other MCP clients) read GitLab without OAuth. Deploy it as a Cloudflare Worker, or self-host it with Node/Docker.
 
-Why: GitLab's built-in MCP endpoint requires OAuth, which Gemini's custom connector could not complete. This server needs none for public projects.
+Why: GitLab's built-in MCP endpoint requires OAuth, which Gemini web app's custom connector could not complete. This server needs none for public projects.
 
 ## Deploy
 
-**Cloudflare Worker**
+Choose either **Option A (Cloudflare Worker)** for zero-maintenance serverless hosting with automatic HTTPS, or **Option B (VPS / Docker)** to self-host on your own infrastructure.
 
-```
+### Option A: Cloudflare Worker (Serverless)
+
+Best if you want a free, managed `https://*.workers.dev` endpoint without running any servers:
+
+```bash
+git clone https://github.com/NubeBuster/serverless-gitlab-mcp.git
+cd serverless-gitlab-mcp
 npx wrangler@latest login
 npx wrangler@latest deploy
 ```
 
-**VPS / Docker / Coolify**
+### Option B: VPS / Docker (Self-Hosted)
 
-```
-git clone <this-repo> && cd serverless-gitlab-mcp && ./install.sh
+Best if you prefer self-hosting on your own Linux server or VPS. Run the one-line installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/NubeBuster/serverless-gitlab-mcp/main/install.sh | bash
 ```
 
-`install.sh` builds the image and runs it with `--restart unless-stopped` on `$PORT` (default 8787). Config goes in as env vars, e.g. `GITLAB_URL=https://gitlab.com ./install.sh`. For Coolify, deploy the repo as a Docker Compose resource (`docker-compose.yml`). Gemini requires HTTPS, so put a reverse proxy in front (Coolify's does this for you). Without Docker: `node server.js` (Node 18+).
+To pass custom configuration via environment variables:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/NubeBuster/serverless-gitlab-mcp/main/install.sh | GITLAB_URL=https://gitlab.com PORT=8787 bash
+```
+
+The script builds the Docker image and starts it with `--restart unless-stopped` on `$PORT` (default `8787`).
+
+- **Coolify / Docker Compose**: Deploy directly using [`docker-compose.yml`](docker-compose.yml).
+- **Bare Node.js**: Run `node server.js` (requires Node 18+).
+- **HTTPS Note**: Gemini web app requires an HTTPS endpoint. Workers provide HTTPS automatically. For VPS setups, put a reverse proxy (Caddy, Traefik, Nginx, or Coolify's proxy) in front.
 
 ## Use
 

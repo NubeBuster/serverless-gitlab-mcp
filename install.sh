@@ -4,16 +4,27 @@
 # Config via env vars:   GITLAB_URL GITLAB_TOKEN MCP_AUTH_TOKEN ALLOWED_PROJECTS PORT
 set -euo pipefail
 
-cd "$(dirname "${BASH_SOURCE[0]}")"
+REPO_URL="https://github.com/NubeBuster/serverless-gitlab-mcp.git"
+
 command -v docker > /dev/null || {
     echo "docker is required: https://docs.docker.com/engine/install/" >&2
     exit 1
 }
 
+BUILD_CONTEXT=""
+if [ -f Dockerfile ]; then
+    BUILD_CONTEXT="."
+elif [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ] && [ -f "$(dirname "${BASH_SOURCE[0]}")/Dockerfile" ]; then
+    BUILD_CONTEXT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+    BUILD_CONTEXT="${REPO_URL}#main"
+fi
+
 PORT="${PORT:-8787}"
 NAME=serverless-gitlab-mcp
 
-docker build -t "$NAME" .
+echo "Building ${NAME} from ${BUILD_CONTEXT}..."
+docker build -t "$NAME" "$BUILD_CONTEXT"
 docker rm -f "$NAME" > /dev/null 2>&1 || true
 docker run -d --name "$NAME" --restart unless-stopped \
     -p "${PORT}:8787" \
