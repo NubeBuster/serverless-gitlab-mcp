@@ -1,0 +1,6 @@
+name = "gitlab-mcp-proxy"
+main = "src/index.js"
+compatibility_date = "2025-11-01"
+
+[vars]
+GITLAB_URL = "https://invent.kde.org"
