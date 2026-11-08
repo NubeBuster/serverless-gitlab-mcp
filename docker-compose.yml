@@ -1,0 +1,14 @@
+# Works with `docker compose up -d` and as a Coolify "Docker Compose" resource.
+# Configure via environment (or a .env file); see .env.example.
+services:
+  serverless-gitlab-mcp:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8787}:8787"
+    environment:
+      GITLAB_URL: ${GITLAB_URL:-https://invent.kde.org}
+      GITLAB_TOKEN: ${GITLAB_TOKEN:-}
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:-}
+      ALLOWED_PROJECTS: ${ALLOWED_PROJECTS:-}
+      MAX_RESPONSE_BYTES: ${MAX_RESPONSE_BYTES:-}
