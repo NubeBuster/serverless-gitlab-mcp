@@ -13,8 +13,8 @@ Choose either **Option A (Cloudflare Worker)** for zero-maintenance serverless h
 Best if you want a free, managed `https://*.workers.dev` endpoint without running any servers:
 
 ```bash
-git clone https://github.com/NubeBuster/serverless-gitlab-mcp.git
-cd serverless-gitlab-mcp
+git clone https://github.com/NubeBuster/serverless-gitlab-mcp.git /tmp/serverless-gitlab-mcp
+cd /tmp/serverless-gitlab-mcp
 npx wrangler@latest login
 npx wrangler@latest deploy
 ```
