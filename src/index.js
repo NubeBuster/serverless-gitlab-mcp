@@ -17,8 +17,15 @@ const projectProp = {
   type: "string",
   description: "Project path or numeric ID, e.g. 'graphics/digikam'",
 };
-const iidProp = { type: "integer", description: "Internal ID (the number in the URL)" };
-const needIid = { type: "object", properties: { project: projectProp, iid: iidProp }, required: ["project", "iid"] };
+const iidProp = {
+  type: "integer",
+  description: "Internal ID (the number in the URL)",
+};
+const needIid = {
+  type: "object",
+  properties: { project: projectProp, iid: iidProp },
+  required: ["project", "iid"],
+};
 
 function query(a, keys, base = {}) {
   const q = new URLSearchParams(base);
@@ -29,33 +36,41 @@ function query(a, keys, base = {}) {
 const TOOLS = [
   {
     name: "get_merge_request",
-    description: "Get a merge request: title, description, state, author, branches, labels.",
+    description:
+      "Get a merge request: title, description, state, author, branches, labels.",
     inputSchema: needIid,
     path: (a) => `/projects/${enc(a.project)}/merge_requests/${a.iid}`,
   },
   {
     name: "get_merge_request_comments",
-    description: "List discussion threads (comments and review notes) of a merge request.",
+    description:
+      "List discussion threads (comments and review notes) of a merge request.",
     inputSchema: needIid,
-    path: (a) => `/projects/${enc(a.project)}/merge_requests/${a.iid}/discussions?per_page=100`,
+    path: (a) =>
+      `/projects/${enc(a.project)}/merge_requests/${a.iid}/discussions?per_page=100`,
+    webFallback: (a) =>
+      `/${a.project}/-/merge_requests/${a.iid}/discussions.json`,
   },
   {
     name: "get_merge_request_diff",
     description: "Get the file diffs of a merge request.",
     inputSchema: needIid,
-    path: (a) => `/projects/${enc(a.project)}/merge_requests/${a.iid}/diffs?per_page=100`,
+    path: (a) =>
+      `/projects/${enc(a.project)}/merge_requests/${a.iid}/diffs?per_page=100`,
   },
   {
     name: "get_merge_request_commits",
     description: "List the commits of a merge request.",
     inputSchema: needIid,
-    path: (a) => `/projects/${enc(a.project)}/merge_requests/${a.iid}/commits?per_page=100`,
+    path: (a) =>
+      `/projects/${enc(a.project)}/merge_requests/${a.iid}/commits?per_page=100`,
   },
   {
     name: "get_merge_request_pipelines",
     description: "List CI pipelines of a merge request (status, ref, sha).",
     inputSchema: needIid,
-    path: (a) => `/projects/${enc(a.project)}/merge_requests/${a.iid}/pipelines`,
+    path: (a) =>
+      `/projects/${enc(a.project)}/merge_requests/${a.iid}/pipelines`,
   },
   {
     name: "get_issue",
@@ -67,7 +82,9 @@ const TOOLS = [
     name: "get_issue_comments",
     description: "List discussion threads (comments) of an issue.",
     inputSchema: needIid,
-    path: (a) => `/projects/${enc(a.project)}/issues/${a.iid}/discussions?per_page=100`,
+    path: (a) =>
+      `/projects/${enc(a.project)}/issues/${a.iid}/discussions?per_page=100`,
+    webFallback: (a) => `/${a.project}/-/issues/${a.iid}/discussions.json`,
   },
   {
     name: "list_issues",
@@ -83,7 +100,8 @@ const TOOLS = [
       },
       required: ["project"],
     },
-    path: (a) => `/projects/${enc(a.project)}/issues?${query(a, ["search", "state", "labels", "page"], { per_page: "30" })}`,
+    path: (a) =>
+      `/projects/${enc(a.project)}/issues?${query(a, ["search", "state", "labels", "page"], { per_page: "30" })}`,
   },
   {
     name: "list_merge_requests",
@@ -98,21 +116,27 @@ const TOOLS = [
       },
       required: ["project"],
     },
-    path: (a) => `/projects/${enc(a.project)}/merge_requests?${query(a, ["search", "state", "page"], { per_page: "30" })}`,
+    path: (a) =>
+      `/projects/${enc(a.project)}/merge_requests?${query(a, ["search", "state", "page"], { per_page: "30" })}`,
   },
   {
     name: "get_file",
-    description: "Get the raw contents of a repository file at a ref (branch, tag or sha).",
+    description:
+      "Get the raw contents of a repository file at a ref (branch, tag or sha).",
     inputSchema: {
       type: "object",
       properties: {
         project: projectProp,
         path: { type: "string", description: "File path in the repository" },
-        ref: { type: "string", description: "Branch, tag or commit; default branch if omitted" },
+        ref: {
+          type: "string",
+          description: "Branch, tag or commit; default branch if omitted",
+        },
       },
       required: ["project", "path"],
     },
-    path: (a) => `/projects/${enc(a.project)}/repository/files/${enc(a.path)}/raw${a.ref ? `?ref=${enc(a.ref)}` : ""}`,
+    path: (a) =>
+      `/projects/${enc(a.project)}/repository/files/${enc(a.path)}/raw${a.ref ? `?ref=${enc(a.ref)}` : ""}`,
     raw: true,
   },
   {
@@ -127,22 +151,31 @@ const TOOLS = [
   },
   {
     name: "search_project",
-    description: "Search a project's issues, merge requests, commits or code (blobs).",
+    description:
+      "Search a project's issues, merge requests, commits or code (blobs).",
     inputSchema: {
       type: "object",
       properties: {
         project: projectProp,
-        scope: { type: "string", enum: ["issues", "merge_requests", "commits", "blobs", "notes"] },
+        scope: {
+          type: "string",
+          enum: ["issues", "merge_requests", "commits", "blobs", "notes"],
+        },
         search: { type: "string" },
       },
       required: ["project", "scope", "search"],
     },
-    path: (a) => `/projects/${enc(a.project)}/search?${query(a, ["scope", "search"], { per_page: "20" })}`,
+    path: (a) =>
+      `/projects/${enc(a.project)}/search?${query(a, ["scope", "search"], { per_page: "20" })}`,
   },
 ];
 
 const rpc = (id, result) => ({ jsonrpc: "2.0", id, result });
-const rpcErr = (id, code, message) => ({ jsonrpc: "2.0", id, error: { code, message } });
+const rpcErr = (id, code, message) => ({
+  jsonrpc: "2.0",
+  id,
+  error: { code, message },
+});
 
 function constantTimeEqual(a, b) {
   if (a.length !== b.length) return false;
@@ -154,7 +187,9 @@ function constantTimeEqual(a, b) {
 function authorized(request, url, env) {
   if (!env.MCP_AUTH_TOKEN) return true;
   const header = request.headers.get("authorization") || "";
-  const given = header.startsWith("Bearer ") ? header.slice(7) : url.searchParams.get("token") || "";
+  const given = header.startsWith("Bearer ")
+    ? header.slice(7)
+    : url.searchParams.get("token") || "";
   return constantTimeEqual(given, env.MCP_AUTH_TOKEN);
 }
 
@@ -164,7 +199,11 @@ function projectAllowed(env, project) {
   return env.ALLOWED_PROJECTS.split(",")
     .map((s) => s.trim())
     .filter(Boolean)
-    .some((prefix) => p === prefix || p.startsWith(prefix.endsWith("/") ? prefix : `${prefix}/`));
+    .some(
+      (prefix) =>
+        p === prefix ||
+        p.startsWith(prefix.endsWith("/") ? prefix : `${prefix}/`),
+    );
 }
 
 async function callTool(env, name, args) {
@@ -173,16 +212,33 @@ async function callTool(env, name, args) {
   for (const r of tool.inputSchema.required) {
     if (args?.[r] === undefined) throw new Error(`Missing argument: ${r}`);
   }
-  if (!projectAllowed(env, args.project)) throw new Error("Project not allowed by ALLOWED_PROJECTS");
+  if (!projectAllowed(env, args.project))
+    throw new Error("Project not allowed by ALLOWED_PROJECTS");
 
   const base = (env.GITLAB_URL || "https://invent.kde.org").replace(/\/$/, "");
-  const headers = { accept: tool.raw ? "text/plain" : "application/json", "user-agent": "serverless-gitlab-mcp" };
+  const headers = {
+    accept: tool.raw ? "text/plain" : "application/json",
+    "user-agent": "serverless-gitlab-mcp",
+  };
   if (env.GITLAB_TOKEN) headers["PRIVATE-TOKEN"] = env.GITLAB_TOKEN;
 
-  const res = await fetch(`${base}/api/v4${tool.path(args)}`, { headers });
+  let res = await fetch(`${base}/api/v4${tool.path(args)}`, { headers });
+  // Some instances (e.g. invent.kde.org) refuse anonymous API reads of notes/discussions but
+  // still serve the web UI's JSON. Fall back to it only when anonymous and the project is a path.
+  if (
+    res.status === 401 &&
+    !env.GITLAB_TOKEN &&
+    tool.webFallback &&
+    String(args.project).includes("/")
+  ) {
+    res = await fetch(`${base}${tool.webFallback(args)}`, {
+      headers: { ...headers, accept: "application/json" },
+    });
+  }
   let text = await res.text();
   const max = Number(env.MAX_RESPONSE_BYTES) || DEFAULT_MAX_BYTES;
-  if (text.length > max) text = `${text.slice(0, max)}\n\n[truncated: ${text.length - max} more characters]`;
+  if (text.length > max)
+    text = `${text.slice(0, max)}\n\n[truncated: ${text.length - max} more characters]`;
   return { content: [{ type: "text", text }], isError: !res.ok };
 }
 
@@ -200,13 +256,23 @@ async function handle(env, msg) {
       return rpc(id, {});
     case "tools/list":
       return rpc(id, {
-        tools: TOOLS.map(({ name, description, inputSchema }) => ({ name, description, inputSchema })),
+        tools: TOOLS.map(({ name, description, inputSchema }) => ({
+          name,
+          description,
+          inputSchema,
+        })),
       });
     case "tools/call":
       try {
-        return rpc(id, await callTool(env, params?.name, params?.arguments ?? {}));
+        return rpc(
+          id,
+          await callTool(env, params?.name, params?.arguments ?? {}),
+        );
       } catch (e) {
-        return rpc(id, { content: [{ type: "text", text: String(e.message) }], isError: true });
+        return rpc(id, {
+          content: [{ type: "text", text: String(e.message) }],
+          isError: true,
+        });
       }
     default:
       return rpcErr(id, -32601, `Method not found: ${method}`);
@@ -221,23 +287,39 @@ export default {
       "access-control-allow-headers": "*",
       "access-control-allow-methods": "POST, OPTIONS",
     };
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-    if (url.pathname === "/health") return new Response("ok", { headers: cors });
-    if (url.pathname !== "/mcp") return new Response("serverless-gitlab-mcp: POST /mcp", { status: 404, headers: cors });
+    if (request.method === "OPTIONS")
+      return new Response(null, { status: 204, headers: cors });
+    if (url.pathname === "/health")
+      return new Response("ok", { headers: cors });
+    if (url.pathname !== "/mcp")
+      return new Response("serverless-gitlab-mcp: POST /mcp", {
+        status: 404,
+        headers: cors,
+      });
     if (!authorized(request, url, env)) {
-      return new Response("Unauthorized", { status: 401, headers: { ...cors, "www-authenticate": "Bearer" } });
+      return new Response("Unauthorized", {
+        status: 401,
+        headers: { ...cors, "www-authenticate": "Bearer" },
+      });
     }
-    if (request.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: cors });
+    if (request.method !== "POST")
+      return new Response("Method Not Allowed", { status: 405, headers: cors });
 
     let body;
     try {
       body = await request.json();
     } catch {
-      return Response.json(rpcErr(null, -32700, "Parse error"), { status: 400, headers: cors });
+      return Response.json(rpcErr(null, -32700, "Parse error"), {
+        status: 400,
+        headers: cors,
+      });
     }
     const batch = Array.isArray(body);
-    const out = (await Promise.all((batch ? body : [body]).map((m) => handle(env, m)))).filter(Boolean);
-    if (out.length === 0) return new Response(null, { status: 202, headers: cors });
+    const out = (
+      await Promise.all((batch ? body : [body]).map((m) => handle(env, m)))
+    ).filter(Boolean);
+    if (out.length === 0)
+      return new Response(null, { status: 202, headers: cors });
     return Response.json(batch ? out : out[0], { headers: cors });
   },
 };
